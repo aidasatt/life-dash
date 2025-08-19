@@ -1,109 +1,102 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LifeDash · список дел</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LifeDash · To-Do</title>
 
-  <!-- Иконки и шрифт -->
+  <!-- Шрифты и иконки -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-  <!-- Стили -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Герой с большой фоновой картинкой -->
+  <!-- Большой геро-блок с фото -->
   <header class="hero">
-    <img class="hero__bg" 
-         src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2100&auto=format&fit=crop" 
+    <img class="hero__bg"
+         src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=2000&auto=format&fit=crop"
          alt="">
     <div class="hero__overlay"></div>
     <div class="hero__content">
       <div class="brand">
-        <img class="brand__logo" 
-             src="https://images.unsplash.com/photo-1520975938311-5f53c13a6b0b?q=80&w=512&auto=format&fit=crop" 
-             alt="">
+        <img class="brand__logo" src="https://images.unsplash.com/photo-1520975938311-5f53c13a6b0b?q=80&w=256&auto=format&fit=crop" alt="">
         <h1>LifeDash</h1>
       </div>
-      <p class="tagline">Привычки • заметки • задачи — твоё красивое ежедневие</p>
+      <p class="tagline">Красивые задачи, прогресс и вдохновение каждый день</p>
     </div>
   </header>
 
-  <!-- Карточка-приложение -->
-  <main class="app">
+  <!-- Основной блок приложения -->
+  <main class="shell">
     <section class="card glass">
-      <div class="card__head">
+      <div class="head">
         <h2><i class="fa-regular fa-square-check"></i> Мои задачи</h2>
-        <div class="progress">
+        <div class="ring">
           <svg viewBox="0 0 36 36">
-            <path class="bg" d="M18 2.0845
-                                 a 15.9155 15.9155 0 0 1 0 31.831
-                                 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-            <path id="ring" class="ring" stroke-dasharray="0,100"
-                  d="M18 2.0845
-                     a 15.9155 15.9155 0 0 1 0 31.831
-                     a 15.9155 15.9155 0 0 1 0 -31.831"/>
-            <text x="18" y="20.35" class="percent" id="progressText">0%</text>
+            <path class="bg" d="M18 2.0845 a15.9155 15.9155 0 1 1 0 31.831 a15.9155 15.9155 0 1 1 0 -31.831"/>
+            <path id="ring" class="fg" stroke-dasharray="0,100"
+                  d="M18 2.0845 a15.9155 15.9155 0 1 1 0 31.831 a15.9155 15.9155 0 1 1 0 -31.831"/>
+            <text id="pct" x="18" y="20.35">0%</text>
           </svg>
         </div>
       </div>
 
-      <!-- Форма добавления -->
+      <!-- форма добавления -->
       <form id="form" class="form">
         <div class="input">
           <i class="fa-regular fa-pen-to-square"></i>
-          <input id="title" type="text" placeholder="Что делаем?" required />
+          <input id="title" type="text" placeholder="Что нужно сделать?" required>
         </div>
-        <div class="controls">
+        <div class="row">
           <label class="chip">
-            <input type="checkbox" id="important">
+            <input id="important" type="checkbox">
             <span><i class="fa-solid fa-star"></i> Важно</span>
           </label>
           <input id="due" type="date" class="date">
-          <button class="btn btn-primary" type="submit">
-            <i class="fa-solid fa-circle-plus"></i> Добавить
-          </button>
+          <button class="btn primary" type="submit"><i class="fa-solid fa-circle-plus"></i> Добавить</button>
         </div>
       </form>
 
-      <!-- Фильтры -->
-      <div class="filters">
-        <button class="chip chip--active" data-filter="all"><i class="fa-solid fa-list"></i> Все</button>
-        <button class="chip" data-filter="active"><i class="fa-regular fa-square"></i> Активные</button>
-        <button class="chip" data-filter="done"><i class="fa-regular fa-square-check"></i> Готово</button>
-        <button class="chip" data-filter="important"><i class="fa-solid fa-star"></i> Важные</button>
+      <!-- фильтры/поиск -->
+      <div class="tools">
+        <div class="chips">
+          <button class="chip chip--active" data-filter="all"><i class="fa-solid fa-list"></i> Все</button>
+          <button class="chip" data-filter="active"><i class="fa-regular fa-square"></i> Активные</button>
+          <button class="chip" data-filter="done"><i class="fa-regular fa-square-check"></i> Готово</button>
+          <button class="chip" data-filter="important"><i class="fa-solid fa-star"></i> Важные</button>
+        </div>
+        <div class="right">
+          <span id="counter" class="muted"><i class="fa-solid fa-list-check"></i> 0 / 0</span>
+          <button id="clearDone" class="btn ghost"><i class="fa-solid fa-broom"></i> Очистить выполненные</button>
+          <button id="export" class="btn ghost"><i class="fa-solid fa-file-arrow-down"></i> Экспорт JSON</button>
+          <label class="btn ghost">
+            <i class="fa-solid fa-file-arrow-up"></i> Импорт
+            <input id="import" type="file" accept="application/json" hidden>
+          </label>
+        </div>
       </div>
 
-      <!-- Список -->
+      <!-- список -->
       <ul id="list" class="list"></ul>
-
-      <!-- Низ карточки -->
-      <div class="card__foot">
-        <button id="clearDone" class="btn ghost"><i class="fa-solid fa-broom"></i> Очистить выполненные</button>
-        <button id="export" class="btn ghost"><i class="fa-solid fa-file-arrow-down"></i> Экспорт JSON</button>
-      </div>
     </section>
 
-    <!-- Боковая галерея/настроение -->
+    <!-- боковая панель с картинками -->
     <aside class="panel glass">
       <h3><i class="fa-regular fa-images"></i> Галерея настроения</h3>
-      <div class="gallery">
-        <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop" alt="">
+      <div class="grid">
         <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop" alt="">
+        <img src="https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1200&auto=format&fit=crop" alt="">
         <img src="https://images.unsplash.com/photo-1500043357865-c6b8827edf3a?q=80&w=1200&auto=format&fit=crop" alt="">
+        <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1200&auto=format&fit=crop" alt="">
       </div>
-      <p class="hint">Добавь задачу — и прогресс-кольцо оживёт ✨</p>
+      <p class="hint">Меняй ссылки на свои фото — и панель станет твоим вдохновением ✨</p>
     </aside>
   </main>
 
-  <footer class="foot">
-    <span>Made with ❤️ by you</span>
-  </footer>
+  <footer class="foot">© 2025 LifeDash • Сделано тобой</footer>
 
   <script src="app.js"></script>
 </body>
 </html>
-
-

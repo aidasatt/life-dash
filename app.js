@@ -1,89 +1,123 @@
-const STORAGE_KEY = 'lifedash.todos.v1';
+const KEY = 'lifedash.todos.v1';
 
-const $ = s => document.querySelector(s);
+const $  = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 
 let todos = load();
-
-const listEl = $('#list');
-const form = $('#form');
-const title = $('#title');
-const due = $('#due');
-const important = $('#important');
-const progressText = $('#progressText');
-const ring = $('#ring');
-
 let filter = 'all';
 
-form.addEventListener('submit', e => {
+const listEl   = $('#list');
+const titleEl  = $('#title');
+const dueEl    = $('#due');
+const impEl    = $('#important');
+const formEl   = $('#form');
+const counter  = $('#counter');
+const ringPath = $('#ring');
+const pctText  = $('#pct');
+
+formEl.addEventListener('submit', e => {
   e.preventDefault();
-  const item = {
+  const title = (titleEl.value || '').trim();
+  if (!title) return;
+
+  todos.unshift({
     id: Date.now(),
-    title: title.value.trim(),
-    due: due.value || null,
-    important: important.checked,
+    title,
+    due: dueEl.value || null,
+    important: impEl.checked,
     done: false,
-    createdAt: new Date().toISOString()
-  };
-  if (!item.title) return;
-  todos.unshift(item);
-  title.value = '';
-  important.checked = false;
-  due.value = '';
+    createdAt: Date.now()
+  });
+
+  titleEl.value = '';
+  dueEl.value   = '';
+  impEl.checked = false;
+
   save(); render();
 });
 
-$('#clearDone').addEventListener('click', () => {
+$('#clearDone').onclick = () => {
   todos = todos.filter(t => !t.done);
   save(); render();
-});
+};
 
-$('#export').addEventListener('click', () => {
+$('#export').onclick = () => {
   const blob = new Blob([JSON.stringify(todos, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'lifedash-todos.json';
-  document.body.appendChild(a); a.click();
-  a.remove(); URL.revokeObjectURL(url);
+  const a = Object.assign(document.createElement('a'), {href:url, download:'lifedash-todos.json'});
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+};
+
+$('#import').addEventListener('change', async (e)=>{
+  const f = e.target.files?.[0]; if (!f) return;
+  try{
+    const text = await f.text();
+    const data = JSON.parse(text);
+    if (Array.isArray(data)){ todos = data; save(); render(); }
+    else alert('Неверный формат JSON');
+  }catch{ alert('Не удалось прочитать файл'); }
+  e.target.value = '';
 });
 
-$$('.filters .chip').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    $$('.filters .chip').forEach(x=>x.classList.remove('chip--active'));
-    b.classList.add('chip--active');
-    filter = b.dataset.filter;
+$$('.chips .chip').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    $$('.chips .chip').forEach(x=>x.classList.remove('chip--active'));
+    btn.classList.add('chip--active');
+    filter = btn.dataset.filter;
     render();
   });
 });
 
 function load(){
-  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []; }
+  try{ return JSON.parse(localStorage.getItem(KEY)) ?? []; }
   catch{ return []; }
 }
 function save(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+  localStorage.setItem(KEY, JSON.stringify(todos));
 }
-function render(){
-  const data = todos.filter(t=>{
-    if (filter==='active') return !t.done;
-    if (filter==='done') return t.done;
-    if (filter==='important') return t.important;
-    return true;
-  });
+function escapeHTML(s){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function fmtDate(d){
+  try{ return new Date(d).toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}); }
+  catch{ return d || '' }
+}
 
+function render(){
+  // фильтрация
+  let items = todos.slice();
+  if (filter==='active')    items = items.filter(t=>!t.done);
+  if (filter==='done')      items = items.filter(t=> t.done);
+  if (filter==='important') items = items.filter(t=> t.important);
+
+  // сортировка: по дате, потом по времени создания
+  items.sort((a,b)=>(a.due||'').localeCompare(b.due||'') || b.createdAt - a.createdAt);
+
+  // счётчик и кольцо прогресса
+  const done = todos.filter(t=>t.done).length;
+  const total = todos.length || 1;
+  const pct = Math.round(done/total*100);
+  counter.innerHTML = `<i class="fa-solid fa-list-check"></i> ${done} / ${todos.length}`;
+  ringPath.setAttribute('stroke-dasharray', `${pct},100`);
+  pctText.textContent = pct + '%';
+
+  // отрисовка списка
   listEl.innerHTML = '';
-  for (const t of data){
+  if (!items.length){
+    listEl.innerHTML = `<div class="muted" style="text-align:center; padding:20px">Нет задач. Добавь первую выше ↑</div>`;
+    return;
+  }
+
+  for (const t of items){
     const li = document.createElement('li');
     li.className = 'item' + (t.done ? ' done' : '');
     li.innerHTML = `
-      <button class="btn toggle" title="Готово">
-        ${t.done ? '<i class="fa-regular fa-square-check"></i>' : '<i class="fa-regular fa-square"></i>'}
-      </button>
+      <button class="btn toggle" title="Готово">${t.done ? '<i class="fa-regular fa-square-check"></i>' : '<i class="fa-regular fa-square"></i>'}</button>
       <div>
         <div class="title">${escapeHTML(t.title)}</div>
         <div class="meta">
-          ${t.important ? '<span class="badge"><i class="fa-solid fa-star"></i> важно</span>' : ''}
-          ${t.due ? ' · до ' + formatDate(t.due) : ''}
+          ${t.important ? '<span class="badge" style="padding:4px 8px;border-radius:999px;background:rgba(124,92,255,.25);border:1px solid rgba(124,92,255,.5)"><i class="fa-solid fa-star"></i> важно</span>' : ''}
+          ${t.due ? ' · до ' + fmtDate(t.due) : ''}
         </div>
       </div>
       <div class="actions">
@@ -91,35 +125,16 @@ function render(){
         <button class="btn ghost del" title="Удалить"><i class="fa-regular fa-trash-can"></i></button>
       </div>
     `;
-    // handlers
-    li.querySelector('.toggle').onclick = ()=>{ t.done = !t.done; save(); render(); };
-    li.querySelector('.del').onclick = ()=>{ todos = todos.filter(x=>x.id!==t.id); save(); render(); };
-    li.querySelector('.edit').onclick = ()=>{
-      const newTitle = prompt('Новое название задачи', t.title);
-      if (newTitle !== null){
-        t.title = newTitle.trim();
-        save(); render();
-      }
+
+    li.querySelector('.toggle').onclick = () => { t.done = !t.done; save(); render(); };
+    li.querySelector('.del').onclick    = () => { todos = todos.filter(x=>x.id!==t.id); save(); render(); };
+    li.querySelector('.edit').onclick   = () => {
+      const nt = prompt('Новое название задачи', t.title);
+      if (nt !== null){ t.title = nt.trim() || t.title; save(); render(); }
     };
+
     listEl.appendChild(li);
   }
-
-  // прогресс
-  const total = todos.length || 1;
-  const done = todos.filter(t=>t.done).length;
-  const pct = Math.round((done/total)*100);
-  progressText.textContent = pct + '%';
-  ring.setAttribute('stroke-dasharray', `${pct},100`);
-}
-
-function formatDate(d){
-  try{
-    const dd = new Date(d);
-    return dd.toLocaleDateString('ru-RU', {day:'2-digit', month:'short'});
-  }catch{ return d }
-}
-function escapeHTML(s){
-  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
 render();
