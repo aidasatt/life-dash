@@ -1,104 +1,297 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-bs-theme="dark">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0a84ff">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>LifeDash — привычки, заметки, медиа</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LifeDash • To-Do</title>
+  <!-- Bootstrap 5 + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --radius: 16px;
+    }
+    body{
+      min-height:100vh;
+      background:
+        radial-gradient(1200px 600px at 100% -50%, rgba(79,140,255,.15), transparent 60%),
+        radial-gradient(900px 600px at -10% 110%, rgba(34,197,94,.12), transparent 60%);
+    }
+    .card{
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .todo-item{
+      display:flex; align-items:center; gap:.75rem; padding:.75rem;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .todo-item + .todo-item{ margin-top:.5rem; }
+    .todo-title{ flex:1; }
+    .todo-title.done{ text-decoration: line-through; opacity:.6; }
+    .badge-date{ background:rgba(255,255,255,.1); }
+    .toolbar .btn{ border-radius: 12px; }
+    .form-control, .form-select{ border-radius:12px; }
+    .floating{
+      position:fixed; right:18px; bottom:18px; z-index:10;
+      border-radius:50%; width:56px; height:56px;
+      display:grid; place-items:center; box-shadow:0 12px 30px rgba(0,0,0,.35);
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>LifeDash</h1>
-    <nav>
-      <button data-tab="dash" class="tab active">Дашборд</button>
-      <button data-tab="habits" class="tab">Привычки</button>
-      <button data-tab="notes" class="tab">Заметки</button>
-      <button data-tab="gallery" class="tab">Галерея</button>
-      <button data-tab="reminders" class="tab">Напоминания</button>
-    </nav>
-  </header>
+  <nav class="py-3">
+    <div class="container d-flex align-items-center justify-content-between">
+      <h1 class="h4 m-0">LifeDash • Заметки-дела</h1>
+      <div class="d-flex gap-2">
+        <button id="themeToggle" class="btn btn-outline-secondary">
+          <i class="bi bi-moon-stars"></i>
+        </button>
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-box-arrow-down"></i> Экспорт/Импорт
+          </button>
+          <div class="dropdown-menu dropdown-menu-end p-3" style="width:320px">
+            <div class="d-grid gap-2">
+              <button id="exportBtn" class="btn btn-primary"><i class="bi bi-download"></i> Экспорт JSON</button>
+              <label class="btn btn-outline-secondary m-0">
+                <i class="bi bi-upload"></i> Импорт JSON <input id="importInput" type="file" accept="application/json" hidden>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
 
-  <main>
-    <!-- DASHBOARD -->
-    <section id="dash" class="view active">
-      <div class="card">
-        <h2>Прогресс недели</h2>
-        <canvas id="weekChart" height="140"></canvas>
-      </div>
-      <div class="grid2">
-        <div class="card kpi"><strong id="kpiHabits">0</strong><span>активных привычек</span></div>
-        <div class="card kpi"><strong id="kpiStreak">0</strong><span>лучшая серия</span></div>
-      </div>
-    </section>
+  <main class="container" style="max-width: 920px;">
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-md-6">
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-plus-circle"></i></span>
+              <input id="newTitle" class="form-control" placeholder="Новая задача… (можно начать с эмодзи)">
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <input id="newDate" type="date" class="form-control">
+          </div>
+          <div class="col-6 col-md-3 d-grid">
+            <button id="addBtn" class="btn btn-success"><i class="bi bi-check2-circle"></i> Добавить</button>
+          </div>
+        </div>
 
-    <!-- HABITS -->
-    <section id="habits" class="view">
-      <div class="toolbar">
-        <button id="addHabit">＋ Привычка</button>
-        <button id="exportCSV">Экспорт CSV</button>
+        <div class="row g-2 mt-3 toolbar">
+          <div class="col-12 col-md">
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input id="search" class="form-control" placeholder="Поиск…">
+            </div>
+          </div>
+          <div class="col-6 col-md-auto">
+            <select id="filter" class="form-select">
+              <option value="all">Все</option>
+              <option value="active">Активные</option>
+              <option value="done">Выполненные</option>
+              <option value="today">На сегодня</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-auto d-grid">
+            <button id="clearDone" class="btn btn-outline-danger"><i class="bi bi-trash3"></i> Очистить выполненные</button>
+          </div>
+          <div class="col-12 col-md-auto d-grid">
+            <span id="counter" class="btn btn-outline-secondary disabled"><i class="bi bi-list-check"></i> 0 / 0</span>
+          </div>
+        </div>
       </div>
-      <ul id="habitList"></ul>
-      <p id="habitsEmpty">Добавьте первую привычку</p>
-    </section>
+    </div>
 
-    <!-- NOTES -->
-    <section id="notes" class="view">
-      <div class="toolbar">
-        <input id="noteTitle" placeholder="Заголовок заметки">
-        <button id="newNote">Новая</button>
-        <button id="deleteNote">Удалить</button>
-      </div>
-      <div class="card">
-        <div id="noteEditor" contenteditable="true" class="editor" aria-label="Редактор заметок (поддержка markdown-разметки)"></div>
-      </div>
-      <div class="card">
-        <h3>Заметки</h3>
-        <ul id="noteList" class="simple-list"></ul>
-      </div>
-    </section>
-
-    <!-- GALLERY -->
-    <section id="gallery" class="view">
-      <div class="toolbar">
-        <input type="file" id="pickImages" accept="image/*" multiple hidden>
-        <button id="addImages">＋ Картинки</button>
-      </div>
-      <div id="grid" class="masonry"></div>
-    </section>
-
-    <!-- REMINDERS -->
-    <section id="reminders" class="view">
-      <div class="toolbar">
-        <input id="remText" placeholder="Текст напоминания">
-        <input id="remTime" type="datetime-local">
-        <button id="addRem">Добавить</button>
-        <button id="exportICS">.ics</button>
-      </div>
-      <ul id="remList" class="simple-list"></ul>
-      <p class="muted">Локальные уведомления работают, пока сайт открыт. Для фоновых пушей нужна серверная часть и регистрация Web Push.</p>
-    </section>
+    <div id="list" class="mb-5"></div>
   </main>
 
-  <dialog id="dlgHabit">
-    <form method="dialog">
-      <h3 id="dlgTitle">Новая привычка</h3>
-      <input id="habitName" placeholder="Напр. 💧 Вода 2л" required>
-      <menu>
-        <button value="cancel">Отмена</button>
-        <button id="saveHabit" value="default">Сохранить</button>
-      </menu>
-    </form>
-  </dialog>
+  <button id="quickAdd" class="btn btn-primary floating"><i class="bi bi-plus-lg fs-4"></i></button>
 
-  <footer>
-    <button id="installBtn" hidden>Добавить на экран «Домой»</button>
-    <small>PWA • офлайн • данные локально</small>
-  </footer>
+  <!-- Modal редактирования -->
+  <div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4">
+        <div class="modal-header">
+          <h5 class="modal-title">Редактировать задачу</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input id="editTitle" class="form-control mb-2" placeholder="Название">
+          <input id="editDate" type="date" class="form-control">
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button id="saveEdit" class="btn btn-primary">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <script type="module" src="app.js"></script>
+  <script>
+    // ----- State & storage -----
+    const key = 'lifedash.todo.v1';
+    const state = JSON.parse(localStorage.getItem(key) || '{"items": []}');
+    const save = () => localStorage.setItem(key, JSON.stringify(state));
+
+    // ----- Elements -----
+    const listEl = document.getElementById('list');
+    const newTitle = document.getElementById('newTitle');
+    const newDate  = document.getElementById('newDate');
+    const addBtn   = document.getElementById('addBtn');
+    const search   = document.getElementById('search');
+    const filter   = document.getElementById('filter');
+    const clearDone= document.getElementById('clearDone');
+    const counter  = document.getElementById('counter');
+    const quickAdd = document.getElementById('quickAdd');
+
+    // Edit modal
+    const editModal = new bootstrap.Modal('#editModal');
+    const editTitle = document.getElementById('editTitle');
+    const editDate  = document.getElementById('editDate');
+    const saveEdit  = document.getElementById('saveEdit');
+    let editingId = null;
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const setTheme = (t) => document.documentElement.setAttribute('data-bs-theme', t);
+    const currentTheme = localStorage.getItem('lifedash.theme') || 'dark';
+    setTheme(currentTheme);
+    themeToggle.innerHTML = currentTheme === 'dark' ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
+    themeToggle.onclick = () => {
+      const next = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+      setTheme(next); localStorage.setItem('lifedash.theme', next);
+      themeToggle.innerHTML = next === 'dark' ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
+    };
+
+    // ----- Helpers -----
+    const todayISO = () => new Date().toISOString().slice(0,10);
+    const byQuery = (t, q) => t.toLowerCase().includes(q.trim().toLowerCase());
+
+    function render(){
+      const q = search.value || '';
+      const f = filter.value;
+      let items = [...state.items];
+
+      // filter
+      if (f === 'active') items = items.filter(i => !i.done);
+      if (f === 'done')   items = items.filter(i =>  i.done);
+      if (f === 'today')  items = items.filter(i => i.date === todayISO());
+
+      // search
+      if (q) items = items.filter(i => byQuery(i.title, q));
+
+      // sort by date then created desc
+      items.sort((a,b) => (a.date||'').localeCompare(b.date||'') || b.created - a.created);
+
+      // counters
+      const doneCount = state.items.filter(i=>i.done).length;
+      counter.innerHTML = '<i class="bi bi-list-check"></i> ' + doneCount + ' / ' + state.items.length;
+
+      // draw
+      listEl.innerHTML = '';
+      if (items.length === 0){
+        listEl.innerHTML = '<div class="text-center text-muted py-5">Задач нет. Добавьте новую ↑</div>';
+        return;
+      }
+
+      items.forEach(item => {
+        const row = document.createElement('div'); row.className = 'todo-item';
+        // checkbox
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.className = 'form-check-input'; cb.checked = item.done;
+        cb.onchange = () => { item.done = cb.checked; save(); render(); };
+
+        // title
+        const title = document.createElement('div'); title.className = 'todo-title';
+        title.textContent = item.title; if (item.done) title.classList.add('done');
+
+        // date badge
+        const date = document.createElement('span');
+        if (item.date){
+          const d = new Date(item.date + 'T00:00:00');
+          date.className = 'badge rounded-pill badge-date';
+          date.textContent = d.toLocaleDateString('ru-RU', { day:'2-digit', month:'short' });
+        }
+
+        // actions
+        const actions = document.createElement('div'); actions.className = 'd-flex align-items-center gap-1';
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-sm btn-outline-secondary'; editBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+        editBtn.onclick = () => { editingId = item.id; editTitle.value = item.title; editDate.value = item.date || ''; editModal.show(); };
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn btn-sm btn-outline-danger'; delBtn.innerHTML = '<i class="bi bi-trash"></i>';
+        delBtn.onclick = () => { state.items = state.items.filter(i => i.id !== item.id); save(); render(); };
+
+        // compose
+        row.append(cb, title);
+        if (item.date) row.append(date);
+        row.append(actions);
+        actions.append(editBtn, delBtn);
+        listEl.append(row);
+      });
+    }
+
+    function addItem(){
+      const title = (newTitle.value || '').trim();
+      if (!title) return;
+      state.items.unshift({
+        id: crypto.randomUUID(),
+        title,
+        date: newDate.value || null,
+        done: false,
+        created: Date.now()
+      });
+      newTitle.value = ''; newDate.value = '';
+      save(); render();
+    }
+
+    // events
+    addBtn.onclick = addItem;
+    quickAdd.onclick = () => newTitle.focus();
+    newTitle.addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+    search.addEventListener('input', render);
+    filter.addEventListener('change', render);
+    clearDone.onclick = () => {
+      state.items = state.items.filter(i => !i.done);
+      save(); render();
+    };
+
+    // edit modal save
+    saveEdit.onclick = () => {
+      if (!editingId) return;
+      const it = state.items.find(i => i.id === editingId);
+      if (it){ it.title = editTitle.value.trim() || it.title; it.date = editDate.value || null; save(); render(); }
+      editModal.hide(); editingId = null;
+    };
+
+    // export / import
+    document.getElementById('exportBtn').onclick = () => {
+      const blob = new Blob([JSON.stringify(state)], {type:'application/json;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'todo-backup.json'; a.click();
+      URL.revokeObjectURL(a.href);
+    };
+    document.getElementById('importInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0]; if(!file) return;
+      const text = await file.text();
+      try{
+        const data = JSON.parse(text);
+        if (data.items && Array.isArray(data.items)){ state.items = data.items; save(); render(); }
+        else alert('Неверный формат файла');
+      }catch{ alert('Не удалось прочитать JSON'); }
+      e.target.value = '';
+    });
+
+    // init
+    render();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
