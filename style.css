@@ -1,0 +1,64 @@
+/* LifeDash styles */
+:root{
+  --bg:#0b1020; --panel:#0e172a; --panel2:#111b33; --stroke:#1f2a44;
+  --text:#e6edf7; --muted:#9fb0c6; --accent:#4f8cff; --ok:#22c55e; --radius:16px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font:16px/1.45 -apple-system,BlinkMacSystemFont,Inter,Roboto,Arial,sans-serif;
+  color:var(--text);
+  background:radial-gradient(1200px 600px at 100% -50%, rgba(79,140,255,.15), transparent 60%),
+             radial-gradient(900px 600px at -10% 110%, rgba(34,197,94,.12), transparent 60%), #0b1020;
+}
+header{position:sticky; top:0; z-index:5; backdrop-filter:blur(6px);
+  display:flex; align-items:center; gap:16px; padding:12px 16px;
+  background:linear-gradient(180deg, rgba(11,16,32,.92), rgba(11,16,32,.6) 60%, transparent);
+  border-bottom:1px solid var(--stroke);
+}
+h1{margin:0; font-size:20px}
+nav{display:flex; gap:6px; flex-wrap:wrap}
+.tab{border:1px solid var(--stroke); background:#131d36; color:var(--text);
+  padding:8px 10px; border-radius:12px; cursor:pointer}
+.tab.active{background:var(--accent); border-color:transparent}
+
+main{max-width:980px; margin:0 auto; padding:12px}
+.view{display:none; animation:fade .15s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:.75; transform:translateY(2px)} to{opacity:1; transform:none}}
+
+.card{background:var(--panel); border:1px solid var(--stroke); border-radius:18px; padding:14px; margin:8px 0}
+.grid2{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+.kpi{display:grid; place-items:center}
+.kpi strong{font-size:28px}
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0}
+.toolbar input, .toolbar button{
+  border:1px solid var(--stroke); background:#131d36; color:var(--text);
+  border-radius:12px; padding:9px 12px
+}
+.toolbar button{background:var(--accent); border-color:transparent}
+.muted{color:var(--muted)}
+
+#habitList{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px}
+.h-item{background:var(--panel2); border:1px solid var(--stroke); border-radius:16px; padding:12px}
+.h-row{display:flex; align-items:center; gap:10px}
+.h-title{font-weight:600}
+.h-row .sp{flex:1}
+.h-btn{border:1px solid var(--stroke); background:#1a2747; color:#dbeafe; border-radius:10px; padding:7px 10px}
+.h-btn.done{background:rgba(34,197,94,.15); color:#baf7cd; border-color:#1b8f4a}
+.h-meta{display:flex; align-items:center; justify-content:space-between; margin-top:6px}
+.dots{display:grid; grid-template-columns:repeat(7,16px); gap:6px}
+.dot{width:16px; height:16px; border-radius:50%; border:1px solid var(--stroke); background:#0b1327}
+.dot.on{background:var(--ok); border-color:#169c49}
+
+.editor{min-height:180px; outline:none; white-space:pre-wrap}
+.simple-list{list-style:none; padding:0; margin:0}
+.simple-list li{padding:8px 10px; border-bottom:1px solid var(--stroke)}
+
+.masonry{columns:3 280px; column-gap:10px}
+.masonry img{width:100%; border-radius:14px; margin:0 0 10px; border:1px solid var(--stroke)}
+
+footer{padding:12px; text-align:center; color:var(--muted)}
+#installBtn{border:1px solid var(--stroke); background:var(--accent); color:#fff; border-radius:12px; padding:8px 12px; margin-bottom:8px}
+
+@media (max-width:640px){ .grid2{grid-template-columns:1fr} }

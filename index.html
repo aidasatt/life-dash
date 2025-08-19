@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a84ff">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>LifeDash — привычки, заметки, медиа</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>LifeDash</h1>
+    <nav>
+      <button data-tab="dash" class="tab active">Дашборд</button>
+      <button data-tab="habits" class="tab">Привычки</button>
+      <button data-tab="notes" class="tab">Заметки</button>
+      <button data-tab="gallery" class="tab">Галерея</button>
+      <button data-tab="reminders" class="tab">Напоминания</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section id="dash" class="view active">
+      <div class="card">
+        <h2>Прогресс недели</h2>
+        <canvas id="weekChart" height="140"></canvas>
+      </div>
+      <div class="grid2">
+        <div class="card kpi"><strong id="kpiHabits">0</strong><span>активных привычек</span></div>
+        <div class="card kpi"><strong id="kpiStreak">0</strong><span>лучшая серия</span></div>
+      </div>
+    </section>
+
+    <!-- HABITS -->
+    <section id="habits" class="view">
+      <div class="toolbar">
+        <button id="addHabit">＋ Привычка</button>
+        <button id="exportCSV">Экспорт CSV</button>
+      </div>
+      <ul id="habitList"></ul>
+      <p id="habitsEmpty">Добавьте первую привычку</p>
+    </section>
+
+    <!-- NOTES -->
+    <section id="notes" class="view">
+      <div class="toolbar">
+        <input id="noteTitle" placeholder="Заголовок заметки">
+        <button id="newNote">Новая</button>
+        <button id="deleteNote">Удалить</button>
+      </div>
+      <div class="card">
+        <div id="noteEditor" contenteditable="true" class="editor" aria-label="Редактор заметок (поддержка markdown-разметки)"></div>
+      </div>
+      <div class="card">
+        <h3>Заметки</h3>
+        <ul id="noteList" class="simple-list"></ul>
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section id="gallery" class="view">
+      <div class="toolbar">
+        <input type="file" id="pickImages" accept="image/*" multiple hidden>
+        <button id="addImages">＋ Картинки</button>
+      </div>
+      <div id="grid" class="masonry"></div>
+    </section>
+
+    <!-- REMINDERS -->
+    <section id="reminders" class="view">
+      <div class="toolbar">
+        <input id="remText" placeholder="Текст напоминания">
+        <input id="remTime" type="datetime-local">
+        <button id="addRem">Добавить</button>
+        <button id="exportICS">.ics</button>
+      </div>
+      <ul id="remList" class="simple-list"></ul>
+      <p class="muted">Локальные уведомления работают, пока сайт открыт. Для фоновых пушей нужна серверная часть и регистрация Web Push.</p>
+    </section>
+  </main>
+
+  <dialog id="dlgHabit">
+    <form method="dialog">
+      <h3 id="dlgTitle">Новая привычка</h3>
+      <input id="habitName" placeholder="Напр. 💧 Вода 2л" required>
+      <menu>
+        <button value="cancel">Отмена</button>
+        <button id="saveHabit" value="default">Сохранить</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <footer>
+    <button id="installBtn" hidden>Добавить на экран «Домой»</button>
+    <small>PWA • офлайн • данные локально</small>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
